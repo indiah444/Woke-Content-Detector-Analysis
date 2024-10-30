@@ -1,4 +1,4 @@
-"""A file to extract the Woke Content Detector List and save it locally as a CSV."""
+"""A file to extract a portion (first 100 rows) of the Woke Content Detector List and save it locally as a CSV."""
 
 from io import StringIO
 import pandas as pd
