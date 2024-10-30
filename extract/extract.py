@@ -1,13 +1,15 @@
+"""A file to extract the Woke Content Detector List and save it locally as a CSV."""
+
+from io import StringIO
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from io import StringIO
 
 
 def download_woke_csv(url: str):
     """Downloads the Woke Content Detector list as a CSV."""
 
-    response = requests.get(url)
+    response = requests.get(url, timeout=10)
     soup = BeautifulSoup(response.text, "html.parser")
 
     table = soup.find("table")
