@@ -3,3 +3,6 @@ pandas
 bs4
 lxml
 ipykernel
+gspread
+oauth2client
+python-dotenv
