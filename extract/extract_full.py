@@ -31,6 +31,7 @@ def download_google_sheet(sheet_url, csv_file_path):
 if __name__ == "__main__":
 
     load_dotenv()
-    sheet = "https://docs.google.com/spreadsheets/d/1AVTZPJij5PQmlWAkYdDahBrxDiwqWMGsWEcEnpdKTa4/edit?gid=0"
+
+    google_sheet = "https://docs.google.com/spreadsheets/d/1AVTZPJij5PQmlWAkYdDahBrxDiwqWMGsWEcEnpdKTa4/edit?gid=0"
     csv_filepath = "woke_content_detector_full.csv"
-    download_google_sheet(sheet, csv_filepath)
+    download_google_sheet(google_sheet, csv_filepath)
