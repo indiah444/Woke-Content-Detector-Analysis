@@ -3,11 +3,19 @@
 import os
 from os import environ as ENV
 from os import rename
+
 import gspread
 import pandas as pd
 from dotenv import load_dotenv
 from oauth2client.service_account import ServiceAccountCredentials
 import kagglehub
+
+
+WCD_GOOGLE_SHEET = "https://docs.google.com/spreadsheets/d/1AVTZPJij5PQmlWAkYdDahBrxDiwqWMGsWEcEnpdKTa4/edit?gid=0"
+WCD_CSV_FILEPATH = "woke_content_detector_full.csv"
+
+VG_DATASET_NAME = "gregorut/videogamesales"
+VG_CSV_FILEPATH = "videogame_sales.csv"
 
 
 def download_wcd_google_sheet(sheet_url, csv_file_path):
@@ -50,10 +58,5 @@ if __name__ == "__main__":
 
     load_dotenv()
 
-    google_sheet = "https://docs.google.com/spreadsheets/d/1AVTZPJij5PQmlWAkYdDahBrxDiwqWMGsWEcEnpdKTa4/edit?gid=0"
-    wcd_csv_filepath = "woke_content_detector_full.csv"
-    download_wcd_google_sheet(google_sheet, wcd_csv_filepath)
-
-    vg_dataset_name = "gregorut/videogamesales"
-    vg_csv_filepath = "videogame_sales.csv"
-    download_vg_sales_kaggle(vg_dataset_name, vg_csv_filepath)
+    download_wcd_google_sheet(WCD_GOOGLE_SHEET, WCD_CSV_FILEPATH)
+    download_vg_sales_kaggle(VG_DATASET_NAME, VG_CSV_FILEPATH)
