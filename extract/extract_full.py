@@ -1,4 +1,4 @@
-"""A file to extract the entire Woke Content Detector list to a CSV."""
+"""A file to extract the entire Woke Content Detector list and other datasets to CSVs."""
 
 from os import environ as ENV
 import gspread
@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 from oauth2client.service_account import ServiceAccountCredentials
 
 
-def download_google_sheet(sheet_url, csv_file_path):
-    """Download data from Google Sheet and save it as CSV."""
+def download_wcd_google_sheet(sheet_url, csv_file_path):
+    """Download the Woke Content Detector data from a Google Sheet and save it as CSV."""
 
     scope = ["https://spreadsheets.google.com/feeds",
              "https://www.googleapis.com/auth/drive"]
@@ -28,10 +28,16 @@ def download_google_sheet(sheet_url, csv_file_path):
     print(f"CSV file downloaded successfully and saved to {csv_file_path}")
 
 
+def download_vg_sales_kaggle():
+    """Download data from a Kaggle dataset and save it as a CSV."""
+
+    pass
+
+
 if __name__ == "__main__":
 
     load_dotenv()
 
     google_sheet = "https://docs.google.com/spreadsheets/d/1AVTZPJij5PQmlWAkYdDahBrxDiwqWMGsWEcEnpdKTa4/edit?gid=0"
     csv_filepath = "woke_content_detector_full.csv"
-    download_google_sheet(google_sheet, csv_filepath)
+    download_wcd_google_sheet(google_sheet, csv_filepath)
