@@ -42,8 +42,6 @@ def download_wcd_google_sheet(sheet_url, csv_file_path):
 def download_vg_sales_kaggle(dataset_name: str, download_path: str):
     """Download data from a Kaggle dataset and save it as a CSV."""
 
-    load_dotenv()
-
     dataset_folder_path = kagglehub.dataset_download(
         dataset_name, force_download=True)
 
