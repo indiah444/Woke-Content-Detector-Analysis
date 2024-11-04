@@ -14,7 +14,7 @@ from logging_config import logger_setup
 LOGGER = logging.getLogger(__name__)
 
 
-def fetch_sampled_games(api_key: str, max_pages: int = 50):
+def fetch_sampled_games(api_key: str, max_pages: int):
     """Fetch a random sample of games from the RAWG API."""
 
     url = "https://api.rawg.io/api/games"
@@ -24,7 +24,7 @@ def fetch_sampled_games(api_key: str, max_pages: int = 50):
     random.shuffle(ordering_options)
 
     pages_to_fetch = random.sample(
-        range(1, max_pages + 1), k=min(max_pages, 10))
+        range(1, max_pages + 1), k=min(max_pages, 100))
     LOGGER.info("Fetching pages: %s", pages_to_fetch)
 
     for page in pages_to_fetch:
@@ -50,19 +50,19 @@ def fetch_sampled_games(api_key: str, max_pages: int = 50):
             break
 
         for game in results:
-            release_year = game.get("released", None)
+            release_year = game.get(
+                "released", "N/A")[:4] if game.get("released") else "N/A"
             rawg_rating = game.get("rating", 0.0)
             metacritic_rating = game.get("metacritic", None)
 
             if (release_year and release_year != "N/A" and
-                rawg_rating > 0.0 and
-                    (metacritic_rating is not None and metacritic_rating > 0)):
+                    (rawg_rating > 0.0 or (metacritic_rating is not None and metacritic_rating > 0))):
 
                 all_games.append({
                     "Name": game.get("name"),
-                    "Rating": rawg_rating,
                     "Release Year": release_year,
-                    "Metacritic": metacritic_rating
+                    "RAWG Rating": rawg_rating,
+                    "Metacritic Rating": metacritic_rating
                 })
             else:
                 LOGGER.info("Excluding game: %s (Release Year: %s, RAWG Rating: %s, Metacritic: %s)",
@@ -87,5 +87,5 @@ if __name__ == "__main__":
 
     API_KEY = ENV["RAWG_KEY"]
 
-    sampled_rawg_games = fetch_sampled_games(API_KEY)
+    sampled_rawg_games = fetch_sampled_games(API_KEY, 100)
     save_to_csv(sampled_rawg_games)
