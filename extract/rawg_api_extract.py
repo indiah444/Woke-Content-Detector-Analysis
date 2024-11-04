@@ -4,7 +4,6 @@ from os import environ as ENV
 import random
 import logging
 import requests
-from requests.exceptions import RequestException
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -15,7 +14,7 @@ from logging_config import logger_setup
 LOGGER = logging.getLogger(__name__)
 
 
-def fetch_sampled_games(api_key: str, page_size: int = 100, max_pages: int = 50):
+def fetch_sampled_games(api_key: str, max_pages: int = 50):
     """Fetch a random sample of games from the RAWG API."""
 
     url = "https://api.rawg.io/api/games"
@@ -25,7 +24,7 @@ def fetch_sampled_games(api_key: str, page_size: int = 100, max_pages: int = 50)
     random.shuffle(ordering_options)
 
     pages_to_fetch = random.sample(
-        range(1, max_pages + 1), k=min(max_pages, 40))
+        range(1, max_pages + 1), k=min(max_pages, 10))
     LOGGER.info("Fetching pages: %s", pages_to_fetch)
 
     for page in pages_to_fetch:
@@ -33,41 +32,41 @@ def fetch_sampled_games(api_key: str, page_size: int = 100, max_pages: int = 50)
         LOGGER.info("Fetching page %s...", page)
         params = {
             "key": api_key,
-            "page_size": page_size,
+            "page_size": 40,
             "page": page
         }
         if ordering:
             params["ordering"] = ordering
 
-        try:
-            response = requests.get(url, params=params, timeout=10)
+        response = requests.get(url, params=params, timeout=10)
+        if response.status_code != 200:
+            LOGGER.warning(
+                "Failed to fetch page %s (Status Code: %s)", page, response.status_code)
+            continue
 
-            if response.status_code == 200:
-                results = response.json().get("results", [])
+        results = response.json().get("results", [])
+        if not results:
+            LOGGER.info("No more games found.")
+            break
 
-                if not results:
-                    LOGGER.info("No more games found.")
-                    break
+        for game in results:
+            release_year = game.get("released", None)
+            rawg_rating = game.get("rating", 0.0)
+            metacritic_rating = game.get("metacritic", None)
 
-                for game in results:
-                    all_games.append({
-                        "Name": game.get("name"),
-                        "Release Year": game.get("released", "N/A")[:4] if game.get("released") else "N/A",
-                        "RAWG Rating": game.get("rating"),
-                        "Metacritic Rating": game.get("metacritic")
-                    })
-                LOGGER.info("Fetched %s games from page %s",
-                            len(results), page)
+            if (release_year and release_year != "N/A" and
+                rawg_rating > 0.0 and
+                    (metacritic_rating is not None and metacritic_rating > 0)):
+
+                all_games.append({
+                    "Name": game.get("name"),
+                    "Rating": rawg_rating,
+                    "Release Year": release_year,
+                    "Metacritic": metacritic_rating
+                })
             else:
-                LOGGER.warning(
-                    "Failed to fetch page %s (Status Code: %s)", page, response.status_code)
-
-        except RequestException as req_err:
-            LOGGER.error("Request error occurred: %s", req_err)
-            break
-        except Exception as err:
-            LOGGER.error("An unexpected error occured: %s", err)
-            break
+                LOGGER.info("Excluding game: %s (Release Year: %s, RAWG Rating: %s, Metacritic: %s)",
+                            game.get("name"), release_year, rawg_rating, metacritic_rating)
 
     return all_games
 
