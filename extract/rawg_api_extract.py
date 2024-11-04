@@ -21,18 +21,23 @@ def fetch_sampled_games(api_key: str, page_size: int = 100, max_pages: int = 50)
     url = "https://api.rawg.io/api/games"
     all_games = []
 
+    ordering_options = [None, "rating", "-rating", "-released", "released"]
+    random.shuffle(ordering_options)
+
     pages_to_fetch = random.sample(
-        range(1, max_pages + 1), k=min(max_pages, 10))
+        range(1, max_pages + 1), k=min(max_pages, 40))
     LOGGER.info("Fetching pages: %s", pages_to_fetch)
 
     for page in pages_to_fetch:
+        ordering = random.choice(ordering_options)
         LOGGER.info("Fetching page %s...", page)
         params = {
             "key": api_key,
             "page_size": page_size,
-            "page": page,
-            "ordering": "-rating"
+            "page": page
         }
+        if ordering:
+            params["ordering"] = ordering
 
         try:
             response = requests.get(url, params=params, timeout=10)
@@ -47,7 +52,9 @@ def fetch_sampled_games(api_key: str, page_size: int = 100, max_pages: int = 50)
                 for game in results:
                     all_games.append({
                         "Name": game.get("name"),
-                        "Rating": game.get("rating")
+                        "Release Year": game.get("released", "N/A")[:4] if game.get("released") else "N/A",
+                        "RAWG Rating": game.get("rating"),
+                        "Metacritic Rating": game.get("metacritic")
                     })
                 LOGGER.info("Fetched %s games from page %s",
                             len(results), page)
