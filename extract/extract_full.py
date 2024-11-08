@@ -38,25 +38,18 @@ def download_wcd_google_sheet(sheet_url, csv_file_path):
         client = gspread.authorize(creds)
 
         sheet = client.open_by_url(sheet_url).sheet1
-
         data = sheet.get_all_values()
-        if not data:
+        if data:
+            df = pd.DataFrame(data[1:], columns=data[0])
+            df.to_csv(csv_file_path, index=False)
+            LOGGER.info(
+                "CSV file downloaded successfully and saved to %s", csv_file_path)
+        else:
             LOGGER.warning("No data retrieved from Google Sheet.")
-            return
-
-        df = pd.DataFrame(data[1:], columns=data[0])
-        df.to_csv(csv_file_path, index=False)
-        LOGGER.info(
-            "CSV file downloaded successfully and saved to %s", csv_file_path)
 
     except SpreadsheetNotFound:
         LOGGER.error(
             "Google Sheet not found. Please check the URL and try again.")
-    except KeyError:
-        LOGGER.error("Environment variable 'GOOGLE_SHEET_PATH' not found.")
-    except Exception as e:
-        LOGGER.exception(
-            "An error occurred while downloading Google Sheet: %s", e)
 
 
 def download_vg_sales_kaggle(dataset_name: str, download_path: str):
@@ -74,9 +67,6 @@ def download_vg_sales_kaggle(dataset_name: str, download_path: str):
     except FileNotFoundError:
         LOGGER.error(
             "The specified Kaggle dataset could not be found: %s", dataset_name)
-    except Exception as e:
-        LOGGER.exception(
-            "An error occured while downloading Kaggle dataset: %s", e)
 
 
 if __name__ == "__main__":
