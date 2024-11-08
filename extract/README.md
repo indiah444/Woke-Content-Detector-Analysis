@@ -2,7 +2,7 @@
 
 ## Overview
 
-This folder is responsible for extracting the various datasets associated with this project. The datasets currently originate from both Google Sheets and Kaggle.
+This folder is responsible for extracting the various datasets associated with this project. The datasets currently originate from Google Sheets, Kaggle, and the RAWG API.
 
 ## Setup
 
