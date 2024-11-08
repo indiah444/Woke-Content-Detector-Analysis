@@ -46,6 +46,8 @@ The `RAWG_KEY` variable refers to the credentials necessary to use the RAWG API.
 - `extract_full.py` downloads the entire Woke Content Detector list and other Kaggle datasets and saves them as CSVs.
 - `rawg_api_extract.py` downloads necessary video game data from the RAWG API.
 
+This folder also makes use of logging. The configuration for this can be found in the `logging_config.py` file in the `utils` folder.
+
 
 
 
