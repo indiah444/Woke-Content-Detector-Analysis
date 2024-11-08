@@ -1,12 +1,17 @@
 """A file to clean the video game data CSVs."""
 
+import os
+
 import pandas as pd
 
 
 def load_woke_data():
     """Loads the Woke Content Detector CSV."""
 
-    return pd.read_csv("extract/woke_content_detector_full.csv")
+    data_dir = "extract"
+    file_path = os.path.join(data_dir, "woke_content_detector_full.csv")
+
+    return pd.read_csv(file_path)
 
 
 def clean_woke_content_detector_data():
