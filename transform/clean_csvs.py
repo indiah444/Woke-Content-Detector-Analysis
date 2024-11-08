@@ -15,6 +15,16 @@ def load_woke_data():
     return pd.read_csv(file_path)
 
 
+def load_rawg_data():
+    """Loads the RAWG data CSV."""
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, "..", "extract",
+                             "rawg_video_games.csv")
+
+    return pd.read_csv(file_path)
+
+
 def clean_woke_content_detector_data():
     """Cleans the Woke Content Detector data and saves it to a CSV."""
 
@@ -42,9 +52,15 @@ def clean_woke_content_detector_data():
 def clean_rawg_data():
     """Cleans the data from the RAWG API and saves it to a CSV."""
 
-    pass
+    rawg_data = load_rawg_data()
+
+    rawg_data = rawg_data.replace("’", "'", regex=True)
+    rawg_data = rawg_data.replace("–", "-", regex=True)
+
+    return rawg_data.to_csv("clean_rawg_video_games.csv")
 
 
 if __name__ == "__main__":
 
     clean_woke_content_detector_data()
+    clean_rawg_data()
