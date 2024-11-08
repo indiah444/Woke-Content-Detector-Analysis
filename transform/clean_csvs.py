@@ -8,8 +8,9 @@ import pandas as pd
 def load_woke_data():
     """Loads the Woke Content Detector CSV."""
 
-    data_dir = "extract"
-    file_path = os.path.join(data_dir, "woke_content_detector_full.csv")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, "..", "extract",
+                             "woke_content_detector_full.csv")
 
     return pd.read_csv(file_path)
 
