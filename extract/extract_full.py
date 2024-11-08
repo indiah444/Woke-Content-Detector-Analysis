@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from oauth2client.service_account import ServiceAccountCredentials
 import kagglehub
 
-from logging_config import logger_setup
+from utils.logging_config import logger_setup
 
 
 LOGGER = logging.getLogger(__name__)
