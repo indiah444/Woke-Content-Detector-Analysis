@@ -11,7 +11,6 @@ def download_woke_csv(url: str):
 
     response = requests.get(url, timeout=10)
     soup = BeautifulSoup(response.text, "html.parser")
-
     table = soup.find("table")
 
     df = pd.read_html(StringIO(str(table)))[0]
