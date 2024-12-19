@@ -9,4 +9,4 @@ __pycache__
 logs/
 .coverage
 utils/.coverage
-../.DS_Store
+.DS_Store
