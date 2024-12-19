@@ -25,13 +25,3 @@ def test_download_woke_csv_valid(mock_to_csv, mock_read_html, mock_beautiful_sou
     mock_beautiful_soup.assert_called_once()
     mock_to_csv.assert_called_once_with(
         "woke_content_detector.csv", index=False)
-
-
-# @patch("extract.requests.get")
-# @patch("extract.BeautifulSoup")
-# def test_download_woke_csv_no_table(mock_beautiful_soup, mock_requests):
-#     """Tests error raised when no table is found in the HTML."""
-#     mock_requests.return_value.text = "<html></html>"
-#     mock_soup = MagicMock()
-#     mock_soup.find.return_value = None
-#     mock_beautiful_soup.return_value = mock_soup

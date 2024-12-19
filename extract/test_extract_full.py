@@ -5,13 +5,6 @@ from unittest.mock import patch, MagicMock
 from gspread.exceptions import SpreadsheetNotFound
 from extract_full import download_wcd_google_sheet, download_vg_sales_kaggle
 
-"""
-download_wcd_gs valid/invalid/empty
-Invalid Credentials: What happens if the service account key path is wrong?
-Empty Google Sheet: What happens if the sheet has no data? Does it create an empty CSV or throw an error?
-Write Permission Issues: If the destination csv_file_path is not writable, does it raise an exception?
-"""
-
 
 @pytest.fixture
 def mock_open_by_url():
