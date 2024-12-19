@@ -11,7 +11,6 @@ def load_woke_data():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(base_dir, "..", "extract",
                              "woke_content_detector_full.csv")
-
     return pd.read_csv(file_path)
 
 
@@ -39,6 +38,7 @@ def clean_woke_content_detector_data():
         "👈": "Rating",
         "If you would like to support our work, please join our Steam group and follow our curator. Thank you!": "Review"
     })
+    print(woke_data)
     woke_data = woke_data.iloc[1:].reset_index(drop=True)
 
     woke_data = woke_data.replace("’", "'", regex=True)
@@ -46,7 +46,8 @@ def clean_woke_content_detector_data():
     woke_data = woke_data.replace("（", "(", regex=True)
     woke_data = woke_data.replace("）", ")", regex=True)
 
-    return woke_data.to_csv("clean_woke_content_detector.csv")
+    woke_data.to_csv("clean_woke_content_detector.csv")
+    return woke_data
 
 
 def clean_rawg_data():
@@ -57,7 +58,8 @@ def clean_rawg_data():
     rawg_data = rawg_data.replace("’", "'", regex=True)
     rawg_data = rawg_data.replace("–", "-", regex=True)
 
-    return rawg_data.to_csv("clean_rawg_video_games.csv")
+    rawg_data.to_csv("clean_rawg_video_games.csv")
+    return rawg_data
 
 
 if __name__ == "__main__":
