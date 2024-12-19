@@ -139,16 +139,3 @@ def test_download_vg_sales_kaggle_invalid(mock_logging, mock_dataset):
     mock_logging.assert_called_once_with(
         "The specified Kaggle dataset could not be found: %s", dataset_name
     )
-
-
-# @patch("extract_full.LOGGER.error")
-# def test_download_vg_sales_kaggle_empty_dataset(mock_logging):
-#     """Tests error is raised when kaggle dataset is an empty string."""
-
-#     dataset_name = ""
-#     download_path = "./test_output.csv"
-#     download_vg_sales_kaggle(dataset_name, download_path)
-
-#     mock_logging.assert_called_once_with(
-#         "The specified Kaggle dataset could not be found: %s", dataset_name
-#     )
