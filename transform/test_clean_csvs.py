@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 import os
 import pandas as pd
-from clean_csvs import (load_woke_data, load_rawg_data,
+from clean_csvs import (load_data,
                         clean_woke_content_detector_data, clean_rawg_data)
 
 
@@ -22,7 +22,7 @@ def test_load_woke_data_valid(mock_read_csv, mock_dirname, mock_join):
     mock_join.return_value = "/fake/path/woke_content_detector_full.csv"
     mock_read_csv.return_value = mock_woke_df
 
-    result = load_woke_data()
+    result = load_data("woke_content_detector_full.csv")
 
     mock_dirname.assert_called_once()
     mock_join.assert_called_once_with(
@@ -47,7 +47,7 @@ def test_load_rawg_data(mock_read_csv, mock_dirname, mock_join):
     mock_join.return_value = "/fake/path/rawg_video_games.csv"
     mock_read_csv.return_value = mock_woke_df
 
-    result = load_rawg_data()
+    result = load_data("rawg_video_games.csv")
 
     mock_dirname.assert_called_once()
     mock_join.assert_called_once_with(
@@ -58,7 +58,7 @@ def test_load_rawg_data(mock_read_csv, mock_dirname, mock_join):
     assert "VVVVV", "2016" in result
 
 
-@patch("clean_csvs.load_woke_data")
+@patch("clean_csvs.load_data")
 def test_clean_woke_content_detector_column_renaming_valid(mock_load_data):
     """Tests columns are renamed correctly."""
     test_df = pd.DataFrame({
@@ -79,7 +79,7 @@ def test_clean_woke_content_detector_column_renaming_valid(mock_load_data):
     assert all(col in result.columns for col in expected_columns)
 
 
-@patch("clean_csvs.load_woke_data")
+@patch("clean_csvs.load_data")
 def test_clean_woke_content_detector_special_characters_valid(mock_load_data):
     """Tests special characters are correctly cleaned."""
     test_df = pd.DataFrame({
@@ -106,7 +106,7 @@ def test_clean_woke_content_detector_special_characters_valid(mock_load_data):
     pd.testing.assert_frame_equal(result, expected_df)
 
 
-@patch("clean_csvs.load_rawg_data")
+@patch("clean_csvs.load_data")
 def test_clean_rawg_data_special_characters(mock_load_data):
     """Tests that special characters in RAWG data are cleaned correctly."""
 

@@ -5,29 +5,18 @@ import os
 import pandas as pd
 
 
-def load_woke_data():
-    """Loads the Woke Content Detector CSV."""
-
+def load_data(csv_file: str):
+    """Loads data from specified CSV file."""
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, "..", "extract",
-                             "woke_content_detector_full.csv")
-    return pd.read_csv(file_path)
-
-
-def load_rawg_data():
-    """Loads the RAWG data CSV."""
-
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, "..", "extract",
-                             "rawg_video_games.csv")
-
+    file_path = os.path.join(base_dir, "..", "extract", csv_file)
     return pd.read_csv(file_path)
 
 
 def clean_woke_content_detector_data():
     """Cleans the Woke Content Detector data and saves it to a CSV."""
 
-    woke_data = load_woke_data()
+    woke_data_csv = "woke_content_detector_full.csv"
+    woke_data = load_data(woke_data_csv)
 
     woke_data.columns = woke_data.columns.str.strip()
     woke_data = woke_data.rename(columns={
@@ -38,8 +27,10 @@ def clean_woke_content_detector_data():
         "👈": "Rating",
         "If you would like to support our work, please join our Steam group and follow our curator. Thank you!": "Review"
     })
-    print(woke_data)
     woke_data = woke_data.iloc[1:].reset_index(drop=True)
+
+    # woke_data.columns = woke_data.iloc[0]
+    # woke_data = woke_data.iloc[1:].reset_index(drop=True)
 
     woke_data = woke_data.replace("’", "'", regex=True)
     woke_data = woke_data.replace("–", "-", regex=True)
@@ -53,7 +44,8 @@ def clean_woke_content_detector_data():
 def clean_rawg_data():
     """Cleans the data from the RAWG API and saves it to a CSV."""
 
-    rawg_data = load_rawg_data()
+    rawg_data_csv = "rawg_video_games.csv"
+    rawg_data = load_data(rawg_data_csv)
 
     rawg_data = rawg_data.replace("’", "'", regex=True)
     rawg_data = rawg_data.replace("–", "-", regex=True)
