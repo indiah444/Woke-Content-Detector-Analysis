@@ -6,5 +6,8 @@ ipykernel
 gspread
 oauth2client
 python-dotenv
+kaggle
 kagglehub
 pylint
+pytest
+pytest-cov

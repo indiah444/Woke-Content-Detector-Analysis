@@ -5,4 +5,8 @@ venv
 .env
 *.csv
 __pycache__
+.pytest_cache
 logs/
+.coverage
+utils/.coverage
+.DS_Store
