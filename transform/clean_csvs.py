@@ -28,7 +28,7 @@ def load_data(csv_file: str) -> pd.DataFrame:
     return df
 
 
-def validate_column_count(df: pd.DataFrame, expected_column_count: int):
+def validate_column_count(df: pd.DataFrame, expected_column_count: int) -> None:
     """Checks if the DataFrame has the expected number of columns."""
     actual_column_count = len(df.columns)
     if actual_column_count < expected_column_count:
