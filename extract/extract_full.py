@@ -27,40 +27,55 @@ VG_CSV_FILEPATH = "videogame_sales.csv"
 def download_wcd_google_sheet(sheet_url, csv_file_path):
     """Download the Woke Content Detector data from a Google Sheet and save it as CSV."""
 
+    if not sheet_url:
+        LOGGER.error(
+            "The Google Sheet URL is empty. Please provide a valid URL.")
+        return
+
     try:
         scope = ["https://spreadsheets.google.com/feeds",
                  "https://www.googleapis.com/auth/drive"]
-
-        json_key_path = ENV["GOOGLE_SHEET_PATH"]
+        json_key_path = ENV.get("GOOGLE_SHEET_PATH")
+        if not json_key_path:
+            LOGGER.error(
+                "The GOOGLE_SHEET_PATH environment variable is missing.")
+            return
 
         creds = ServiceAccountCredentials.from_json_keyfile_name(
             json_key_path, scope)
         client = gspread.authorize(creds)
-
         sheet = client.open_by_url(sheet_url).sheet1
         data = sheet.get_all_values()
-        if data:
-            df = pd.DataFrame(data[1:], columns=data[0])
-            df.to_csv(csv_file_path, index=False)
-            LOGGER.info(
-                "CSV file downloaded successfully and saved to %s", csv_file_path)
-        else:
-            LOGGER.warning("No data retrieved from Google Sheet.")
+
+        if not data or len(data) <= 1:
+            LOGGER.warning("No valid data retrieved from Google Sheet.")
+            return
+
+        df = pd.DataFrame(data[1:], columns=data[0])
+        df.to_csv(csv_file_path, index=False)
+        LOGGER.info(
+            "CSV file downloaded successfully and saved to %s", csv_file_path)
 
     except SpreadsheetNotFound:
         LOGGER.error(
             "Google Sheet not found. Please check the URL and try again.")
+    except FileNotFoundError as e:
+        LOGGER.error("Error with credentials file: %s", e)
 
 
 def download_vg_sales_kaggle(dataset_name: str, download_path: str):
     """Download data from a Kaggle dataset and save it as a CSV."""
-
     try:
         dataset_folder_path = kagglehub.dataset_download(
             dataset_name, force_download=True)
-        downloaded_file_path = os.path.join(
-            dataset_folder_path, os.listdir(dataset_folder_path)[0])
+        files = os.listdir(dataset_folder_path)
 
+        if not files:
+            LOGGER.warning(
+                "Kaggle dataset folder is empty - No files to process.")
+            return
+
+        downloaded_file_path = os.path.join(dataset_folder_path, files[0])
         rename(downloaded_file_path, download_path)
         LOGGER.info("Dataset downloaded and saved to %s", download_path)
 

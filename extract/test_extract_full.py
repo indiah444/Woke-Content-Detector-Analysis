@@ -89,12 +89,32 @@ def test_download_wcd_google_sheet_invalid_url(mock_logging, mock_authorize, moc
 @patch.dict("extract_full.ENV", {"GOOGLE_SHEET_PATH": "test_creds.json"})
 @patch("extract_full.ServiceAccountCredentials.from_json_keyfile_name")
 @patch("extract_full.gspread.authorize")
-@patch("extract_full.LOGGER.warning")
+@patch("extract_full.LOGGER.error")
 def test_download_wcd_google_sheet_empty_url(mock_logging, mock_authorize, mock_credentials):
     """Tests error is raised when URL is empty. Maybe log a warning or error"""
     download_wcd_google_sheet("", "fake_path.csv")
-    # mock_logging.assert_not_called_with("No data retrieved from Google Sheet.")
-    mock_logging.assert_not_called
+    mock_logging.assert_called_with(
+        "The Google Sheet URL is empty. Please provide a valid URL.")
+
+
+@patch.dict("extract_full.ENV", {"GOOGLE_SHEET_PATH": "test_creds.json"})
+@patch("extract_full.ServiceAccountCredentials.from_json_keyfile_name")
+@patch("extract_full.gspread.authorize")
+@patch("extract_full.LOGGER.warning")
+def test_download_wcd_google_sheet_no_data_rows(mock_logging, mock_authorize, mock_credentials):
+    """Tests warning is logged when a Google Sheet contains only headers."""
+    mock_gspread_client = MagicMock()
+    mock_sheet = MagicMock()
+    mock_sheet.get_all_values.return_value = [
+        ["Game", "Release Year", "Developer"]]
+    mock_gspread_client.open_by_url.return_value.sheet1 = mock_sheet
+    mock_authorize.return_value = mock_gspread_client
+
+    download_wcd_google_sheet("https://fake-url", "fake_path.csv")
+
+    mock_logging.assert_called_with(
+        "No valid data retrieved from Google Sheet."
+    )
 
 
 @patch("extract_full.kagglehub.dataset_download")
@@ -131,4 +151,20 @@ def test_download_vg_sales_kaggle_invalid(mock_logging, mock_dataset):
     mock_dataset.assert_called_once_with(dataset_name, force_download=True)
     mock_logging.assert_called_once_with(
         "The specified Kaggle dataset could not be found: %s", dataset_name
+    )
+
+
+@patch("extract_full.kagglehub.dataset_download")
+@patch("extract_full.os.listdir")
+@patch("extract_full.LOGGER.warning")
+def test_download_vg_sales_kaggle_empty_folder(mock_logging, mock_listdir, mock_dataset):
+    """Tests warning is logged when Kaggle dataset folder is empty."""
+    mock_dataset.return_value = "/fake/path"
+    mock_listdir.return_value = []
+
+    dataset_name = "vg_sales_dataset"
+    download_vg_sales_kaggle(dataset_name, "test_output.csv")
+
+    mock_logging.assert_called_once_with(
+        "Kaggle dataset folder is empty - No files to process."
     )
