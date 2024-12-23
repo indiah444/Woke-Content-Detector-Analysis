@@ -99,9 +99,12 @@ def test_load_data_empty_csv(mock_read_csv, mock_dirname, mock_join, mock_exists
 
     mock_logging.assert_called_with("CSV file is empty: %s", "empty.csv")
 
+##
 
+
+@patch("pandas.DataFrame.to_csv")
 @patch("clean_csvs.load_data")
-def test_clean_woke_content_detector_column_renaming_valid(mock_load_data):
+def test_clean_woke_content_detector_column_renaming_valid(mock_load_data, mock_to_csv):
     """Tests columns are renamed correctly."""
     test_df = pd.DataFrame({
         "This list was put together by the Woke Content Detector Steam group with assistance from members of RPGHQ.": ["Game1"],
@@ -116,13 +119,16 @@ def test_clean_woke_content_detector_column_renaming_valid(mock_load_data):
 
     result = clean_woke_content_detector_data()
 
+    mock_to_csv.assert_called_once_with(
+        "clean_woke_content_detector.csv", index=True)
     expected_columns = ["Game", "Release Year",
                         "Developer", "Publisher", "Rating", "Review"]
     assert all(col in result.columns for col in expected_columns)
 
 
+@patch("pandas.DataFrame.to_csv")
 @patch("clean_csvs.load_data")
-def test_clean_woke_content_detector_special_characters_valid(mock_load_data):
+def test_clean_woke_content_detector_special_characters_valid(mock_load_data, mock_to_csv):
     """Tests special characters are correctly cleaned."""
     test_df = pd.DataFrame({
         "Game": ["Assassin's Creed (Remastered) III", "Starfield"],
@@ -136,6 +142,8 @@ def test_clean_woke_content_detector_special_characters_valid(mock_load_data):
     mock_load_data.return_value = test_df
     result = clean_woke_content_detector_data()
 
+    mock_to_csv.assert_called_once_with(
+        "clean_woke_content_detector.csv", index=True)
     expected_df = pd.DataFrame({
         "Game": ["Assassin's Creed(Remastered)III", "Starfield"],
         "Release Year": ["2023", "2020"],
@@ -147,10 +155,13 @@ def test_clean_woke_content_detector_special_characters_valid(mock_load_data):
 
     pd.testing.assert_frame_equal(result, expected_df)
 
+####
 
+
+@patch("pandas.DataFrame.to_csv")
 @patch("clean_csvs.LOGGER.error")
 @patch("clean_csvs.load_data")
-def test_clean_woke_content_detector_exception_handling(mock_load_data, mock_logging):
+def test_clean_woke_content_detector_exception_handling(mock_load_data, mock_logging, mock_to_csv):
     """Tests exception handling in clean_woke_content_detector_data function."""
     mock_load_data.side_effect = Exception("Error")
 
@@ -159,10 +170,12 @@ def test_clean_woke_content_detector_exception_handling(mock_load_data, mock_log
     assert result is None
     mock_logging.assert_called_with(
         "Error cleaning Woke Content Detector data: %s", "Error")
+    mock_to_csv.assert_not_called()
 
 
+@patch("pandas.DataFrame.to_csv")
 @patch("clean_csvs.load_data")
-def test_clean_woke_content_detector_duplicate_removal(mock_load_data):
+def test_clean_woke_content_detector_duplicate_removal(mock_load_data, mock_to_csv):
     """Tests that duplicates are removed successfully from woke content detector data."""
     test_df = pd.DataFrame({
         "Game": ["Game1", "Game1", "Game2"],
@@ -179,10 +192,13 @@ def test_clean_woke_content_detector_duplicate_removal(mock_load_data):
 
     assert len(result) == 2
     assert list(result["Game"]) == ["Game1", "Game2"]
+    mock_to_csv.assert_called_once_with(
+        "clean_woke_content_detector.csv", index=True)
 
 
+@patch("pandas.DataFrame.to_csv")
 @patch("clean_csvs.load_data")
-def test_clean_rawg_data_special_characters_valid(mock_load_data):
+def test_clean_rawg_data_special_characters_valid(mock_load_data, mock_to_csv):
     """Tests that special characters in RAWG data are cleaned correctly."""
 
     test_df = pd.DataFrame({
@@ -196,6 +212,9 @@ def test_clean_rawg_data_special_characters_valid(mock_load_data):
 
     result = clean_rawg_data()
 
+    mock_to_csv.assert_called_once_with(
+        "clean_rawg_video_games.csv", index=True)
+
     expected_df = pd.DataFrame({
         "Name": ["Assassin's Creed III", "Star-Field"],
         "Release Year": ["2023", "2020"],
@@ -206,9 +225,10 @@ def test_clean_rawg_data_special_characters_valid(mock_load_data):
     pd.testing.assert_frame_equal(result, expected_df)
 
 
+@patch("pandas.DataFrame.to_csv")
 @patch("clean_csvs.LOGGER.error")
 @patch("clean_csvs.load_data")
-def test_clean_rawg_data_exception_handling(mock_load_data, mock_logging):
+def test_clean_rawg_data_exception_handling(mock_load_data, mock_logging, mock_to_csv):
     """Tests exception handling in clean_rawg_data function."""
     mock_load_data.side_effect = Exception("Error")
 
@@ -217,10 +237,12 @@ def test_clean_rawg_data_exception_handling(mock_load_data, mock_logging):
     assert result is None
     mock_logging.assert_called_with(
         "Error cleaning RAWG data: %s", "Error")
+    mock_to_csv.assert_not_called()
 
 
+@patch("pandas.DataFrame.to_csv")
 @patch("clean_csvs.load_data")
-def test_clean_rawg_data_duplicate_removal(mock_load_data):
+def test_clean_rawg_data_duplicate_removal(mock_load_data, mock_to_csv):
     """Tests that duplicates are removed successfully from RAWG data."""
     test_df = pd.DataFrame({
         "Name": ["Game1", "Game1", "Game2"],
@@ -235,6 +257,11 @@ def test_clean_rawg_data_duplicate_removal(mock_load_data):
 
     assert len(result) == 2
     assert list(result["Name"]) == ["Game1", "Game2"]
+
+    mock_to_csv.assert_called_once_with(
+        "clean_rawg_video_games.csv", index=True)
+
+##
 
 
 @patch("clean_csvs.LOGGER.error")
