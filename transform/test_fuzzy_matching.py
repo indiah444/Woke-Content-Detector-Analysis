@@ -3,11 +3,13 @@
 import pytest
 import pandas as pd
 from unittest.mock import patch
-from fuzzy_matching import load_video_game_data, fuzzy_match, match_row
+from fuzzy_matching import (load_video_game_data, fuzzy_match, match_row,
+                            get_matched_row, process_video_game_data)
 
 
+@patch("fuzzy_matching.LOGGER.info")
 @patch("pandas.read_csv")
-def test_load_video_game_data_valid(mock_read_csv):
+def test_load_video_game_data_valid(mock_read_csv, mock_logging):
     """Test that load_video_game_data correctly loads data from CSVs."""
 
     wcd_data_mock = pd.DataFrame(
@@ -24,6 +26,20 @@ def test_load_video_game_data_valid(mock_read_csv):
     pd.testing.assert_frame_equal(wcd_data, wcd_data_mock)
     pd.testing.assert_frame_equal(vg_sales_data, vg_sales_data_mock)
     pd.testing.assert_frame_equal(rawg_data, rawg_data_mock)
+    mock_logging.assert_called_with("Successfully loaded all data files")
+
+
+@patch("fuzzy_matching.LOGGER.error")
+@patch("pandas.read_csv")
+def test_load_video_game_data_file_missing(mock_read_csv, mock_logging):
+    """Test load_video_game_data handles missing files properly."""
+    error = FileNotFoundError("File not found.")
+    mock_read_csv.side_effect = error
+
+    with pytest.raises(FileNotFoundError):
+        load_video_game_data()
+
+    mock_logging.assert_called_with("File not found: %s", error)
 
 
 def test_fuzzy_match_valid():
@@ -36,6 +52,30 @@ def test_fuzzy_match_valid():
 
     assert best_match == "Assassin Creed"
     assert score > 80
+
+
+@patch("fuzzy_matching.LOGGER.warning")
+def test_fuzzy_match_no_valid_matches(mock_logging):
+    """Test that no valid match raises warning message."""
+    source_name = "Game1"
+    target_names = ["Assassin Creed", "Battlefield"]
+    best_match, score = fuzzy_match(
+        source_name, target_names, limit=1, min_score=80)
+    assert best_match is None
+    assert score == 0
+
+    mock_logging.assert_called_with(
+        "No match found above threshold for: %s (score: %s)", source_name, 25.0)
+
+
+def test_get_matched_row_valid_match():
+    """Test get_matched_row returns correct data for valid match."""
+    df = pd.DataFrame({
+        "Name": ["Game1"],
+        "Value": [100]
+    })
+    result = get_matched_row("Game1", df, 80)
+    assert result["Value"] == 100
 
 
 def test_match_row_valid():
@@ -84,25 +124,25 @@ def test_match_row_valid():
 
     pd.testing.assert_series_equal(result, expected_result)
 
-###
+
+@patch("fuzzy_matching.LOGGER.info")
+def test_match_row_logs_processing(mock_logging):
+    """Test that game processing is logged successfully."""
+    row = pd.Series({"Game": "TestGame"})
+    df = pd.DataFrame({"Name": ["Game1"]})
+    match_row(row, df, df)
+    mock_logging.assert_called_with("Processing game: %s", "TestGame")
 
 
-@patch("pandas.read_csv")
-def test_load_video_game_data_file_missing(mock_read_csv):
-    """Test load_video_game_data handles missing files properly."""
-    mock_read_csv.side_effect = FileNotFoundError("File not found.")
-
-    with pytest.raises(FileNotFoundError):
-        wcd_data, vg_sales_data, rawg_data = load_video_game_data()
-
-
-def test_fuzzy_match_no_valid_matches():
-    """Test that fuzzy_match handles no valid matches gracefully."""
-    source_name = "GameX"
-    target_names = ["Assassin Creed", "Battlefield"]
-    best_match, score = fuzzy_match(source_name, target_names, limit=1)
-    assert best_match is None
-    assert score == 0
+@patch("fuzzy_matching.LOGGER.info")
+def test_process_video_game_data_logs_completion(mock_logging):
+    """Test that process completion is logged."""
+    with patch("fuzzy_matching.load_video_game_data") as mock_load:
+        mock_load.return_value = (
+            pd.DataFrame(), pd.DataFrame(), pd.DataFrame())
+        process_video_game_data()
+        mock_logging.assert_called_with("Saving combined data to %s",
+                                        "combined_video_game_data.csv")
 
 
 def test_match_row_no_matches():
@@ -126,7 +166,7 @@ def test_match_row_no_matches():
     result = match_row(pd.Series(wcd_row),
                        vg_sales_data,
                        rawg_data,
-                       match_threshold=90  # Higher threshold ensures no matches
+                       match_threshold=90
                        )
     expected_result = pd.Series({
         "Name": "Unknown Game",
@@ -146,7 +186,7 @@ def test_match_row_no_matches():
     pd.testing.assert_series_equal(result, expected_result)
 
 
-def test_match_row_near_threshold():
+def test_match_row_valid_near_threshold():
     """Test match_row when match is just at the threshold."""
     wcd_row = {"Game": "Assassin Creed"}
 
@@ -160,7 +200,6 @@ def test_match_row_near_threshold():
         "RAWG Rating": [95]
     })
 
-    # Set threshold close to matching score
     result = match_row(pd.Series(wcd_row), vg_sales_data,
                        rawg_data, match_threshold=80)
 
@@ -168,51 +207,10 @@ def test_match_row_near_threshold():
     assert result["North American Sales"] == 1.5
 
 
-# @ patch("pandas.DataFrame.to_csv")  # Mock to_csv to avoid writing to disk
-# @ patch("fuzzy_matching.load_video_game_data")
-# def test_main_workflow(mock_load_video_game_data, mock_to_csv):
-#     """Test that the main workflow runs end-to-end properly."""
-#     # Mock the loaded data
-#     mock_wcd_data = pd.DataFrame({
-#         "Game": ["Game1"],
-#         "Release Year": ["2023"],
-#         "Developer": ["Dev1"],
-#         "Publisher": ["Pub1"],
-#         "Rating": ["Recommended"],
-#         "Review": ["Great game."]
-#     })
-#     mock_vg_sales_data = pd.DataFrame({
-#         "Name": ["Game1"],
-#         "NA_Sales": [1.0],
-#         "EU_Sales": [2.0],
-#         "JP_Sales": [0.5],
-#         "Other_Sales": [1.0],
-#         "Global_Sales": [4.5]
-#     })
-#     mock_rawg_data = pd.DataFrame({
-#         "Name": ["Game1"],
-#         "RAWG Rating": [90],
-#         "Metacritic Rating": [85]
-#     })
-
-#     mock_load_video_game_data.return_value = (
-#         mock_wcd_data, mock_vg_sales_data, mock_rawg_data)
-
-#     # Call main workflow (simulate __main__ block)
-#     wcd_data, vg_sales_data, rawg_data = load_video_game_data()
-#     combined_df = wcd_data.apply(
-#         match_row, axis=1, args=(vg_sales_data, rawg_data))
-#     combined_df.to_csv("combined_video_game_data.csv", index=False)
-
-#     # Ensure to_csv was called with the correct arguments
-#     mock_to_csv.assert_called_once_with(
-#         "combined_video_game_data.csv", index=False)
-
-@patch("pandas.DataFrame.to_csv")  # Mock to_csv to avoid writing to disk
-# Properly mock the load_video_game_data function
+@patch("pandas.DataFrame.to_csv")
 @patch("fuzzy_matching.load_video_game_data")
 def test_main_workflow(mock_load_video_game_data, mock_to_csv):
-    """Test that the main workflow runs end-to-end properly."""
+    """Test that the main workflow runs successfully."""
     mock_wcd_data = pd.DataFrame({
         "Game": ["Game1"],
         "Release Year": ["2023"],
@@ -234,16 +232,15 @@ def test_main_workflow(mock_load_video_game_data, mock_to_csv):
         "RAWG Rating": [90],
         "Metacritic Rating": [85]
     })
-    # Configure mock to return the mocked DataFrames
 
     mock_load_video_game_data.return_value = (
         mock_wcd_data, mock_vg_sales_data, mock_rawg_data
     )
-    # Simulate the __main__ block workflow
+
     wcd_data, vg_sales_data, rawg_data = mock_load_video_game_data()
     combined_df = wcd_data.apply(
         match_row, axis=1, args=(vg_sales_data, rawg_data))
     combined_df.to_csv("combined_video_game_data.csv", index=False)
-    # Assert that the to_csv function was called correctly
+
     mock_to_csv.assert_called_once_with(
         "combined_video_game_data.csv", index=False)
