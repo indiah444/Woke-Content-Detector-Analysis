@@ -10,3 +10,4 @@ logs/
 .coverage
 utils/.coverage
 .DS_Store
+test_logs/
